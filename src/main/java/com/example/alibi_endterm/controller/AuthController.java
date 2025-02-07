@@ -2,36 +2,46 @@ package com.example.alibi_endterm.controller;
 
 import com.example.alibi_endterm.dto.UserDTO;
 import com.example.alibi_endterm.entity.User;
+import com.example.alibi_endterm.security.JwtUtils;
 import com.example.alibi_endterm.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
-    @Autowired
     private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtils jwtUtil;
 
-    public AuthController(UserService userService) {
+    public AuthController(UserService userService, PasswordEncoder passwordEncoder, JwtUtils jwtUtil) {
         this.userService = userService;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody UserDTO userDTO) {
+    public ResponseEntity<User> register(@Valid @RequestBody UserDTO userDTO) {
         User user = new User();
         user.setUsername(userDTO.getUsername());
-        user.setPassword(userDTO.getPassword());
-        userService.register(user);
-        return ResponseEntity.ok("User registered successfully");
+        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+
+        return ResponseEntity.ok(userService.register(user));
     }
 
-    @RestController
-    public class RootController {
-        @GetMapping("/")
-        public String home() {
-            return "Welcome to the root page!";
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody UserDTO userDTO) {
+        User user = userService.findByUsername(userDTO.getUsername());
+
+        if (user != null && passwordEncoder.matches(userDTO.getPassword(), user.getPassword())) {
+            String token = jwtUtil.generateToken(user.getUsername());
+            return ResponseEntity.ok(token);
+        } else {
+            return ResponseEntity.status(401).body("Invalid credentials");
         }
     }
-
 }
