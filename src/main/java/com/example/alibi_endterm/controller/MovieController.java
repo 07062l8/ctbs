@@ -21,15 +21,13 @@ public class MovieController {
     }
 
     @GetMapping
-    public List<MovieDTO> getAllMovies() {
-        return movieService.getAllMovies().stream()
-                .map(movie -> {
-                    MovieDTO dto = new MovieDTO();
-                    dto.setTitle(movie.getTitle());
-                    dto.setDescription(movie.getDescription());
-                    dto.setAvailableTickets(movie.getAvailableTickets());
-                    return dto;
-                })
-                .collect(Collectors.toList());
+    public List<Movie> getAllMovies() {
+        return movieService.getAllMovies();
+    }
+
+    @PostMapping
+    public ResponseEntity<MovieDTO> addMovie(@RequestBody MovieDTO movieDTO) {
+        Movie savedMovie = movieService.addMovie(movieDTO);
+        return ResponseEntity.ok(new MovieDTO(savedMovie.getTitle(), savedMovie.getDescription(), savedMovie.getAvailableTickets()));
     }
 }
