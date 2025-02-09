@@ -1,5 +1,6 @@
 package com.example.alibi_endterm.service;
 
+import com.example.alibi_endterm.dto.MovieDTO;
 import com.example.alibi_endterm.entity.Movie;
 import com.example.alibi_endterm.repository.MovieRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,5 +19,13 @@ public class MovieService {
 
     public List<Movie> getAllMovies() {
         return movieRepository.findAll();
+    }
+
+    public Movie addMovie(MovieDTO movieDTO) {
+        Movie movie = new Movie();
+        movie.setTitle(movieDTO.getTitle());
+        movie.setDescription(movieDTO.getDescription());
+        movie.setAvailableTickets(movieDTO.getAvailableTickets());
+        return movieRepository.save(movie);
     }
 }
